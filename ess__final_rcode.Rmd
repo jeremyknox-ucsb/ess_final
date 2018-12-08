@@ -19,8 +19,9 @@ library(reshape2)
 library(stargazer)
 library(Hmisc)
 library(lmtest)
+library(corrplot)
 task1 = read_csv("climate_opinion.csv")
-task2 = read_csv("ucsb_climate.csv")
+task2 = read.csv("ucsb_climate.csv", row.names = 1)
 task3 = read_csv("tmas_df.csv")
 task4 = read_csv("PesticideResidues.csv")
 task5 = read_csv("ca_county_pesticides.csv")
@@ -60,5 +61,19 @@ interaction2
 
 Task 2 
 ```{r}
+# compare proportions
+task2_simple = task2%>% 
+  select(Very.Respectful,Respectful,Disrespectful,Very.Disrespectful)
+chisq <- chisq.test(task2_simple)
+chisq
 
+# exploring visually
+chisq$observed
+round(chisq$expected,2)
+round(chisq$residuals, 3)
+corrplot(chisq$residuals, is.cor = FALSE)
+
+contrib <- 100*chisq$residuals^2/chisq$statistic
+round(contrib, 3)
+corrplot(contrib, is.cor = FALSE)
 ```
