@@ -1,0 +1,64 @@
+---
+title: "project_ess_final"
+author: "Jeremy Knox"
+date: "12/8/2018"
+output: html_document
+---
+
+Libraries and Data Frames:
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(car)
+library(userfriendlyscience)
+library(knitr)
+library(kableExtra)
+library(effsize)
+library(ggrepel)
+library(reshape2)
+library(stargazer)
+library(Hmisc)
+library(lmtest)
+task1 = read_csv("climate_opinion.csv")
+task2 = read_csv("ucsb_climate.csv")
+task3 = read_csv("tmas_df.csv")
+task4 = read_csv("PesticideResidues.csv")
+task5 = read_csv("ca_county_pesticides.csv")
+```
+
+Task 1
+```{r}
+# correlation matrix 
+sapply(task1, class)
+subset_task1 = task1 %>% select(happening,consensus,discuss,mediaweekly,bachelors,poverty_rate)
+cm = rcorr(as.matrix(subset_task1))
+cm
+
+# dependent "happening" is derived from a binomial variable with "yes", "no" or "dont know" responses. Then aggreagated at the state level and given as a percent of respondents who repsponded yes.
+lm = lm(data = task1, happening ~ bachelors + poverty_rate + coastline) 
+summary(lm) # NOT INCLUDED variables because of likely reverse causuality: "consensus", "discuss", "mediaweekly"
+plot(lm) # looks homoskedastic 
+bptest(lm) # p = .65 thus residuals most likley constant => homoskedastic 
+
+
+##### exploring interactions => NO interactions needed ####
+task1_s1 = task1 %>% 
+  filter(bachelors < 40)
+interaction1 = ggplot(data = task1_s1, aes(x=bachelors, y=happening, color=coastline), alpha=.1) +
+  geom_point(shape=1) +
+  stat_smooth(aes(group = coastline), method = "lm", formula = y ~ x, se = FALSE)
+interaction1
+interaction2 = ggplot(data = task1_s1, aes(x=poverty_rate, y=happening, color=coastline), alpha=.1) +
+  geom_point(shape=1) +
+  stat_smooth(aes(group = coastline), method = "lm", formula = y ~ x, se = FALSE)
+interaction2
+interaction2 = ggplot(data = task1_s1, aes(x=GeoName, y=happening, color=coastline), alpha=.1) +
+  geom_point(shape=1) +
+  stat_smooth(aes(group = coastline), method = "lm", formula = y ~ x, se = FALSE)
+interaction2
+```
+
+Task 2 
+```{r}
+
+```
