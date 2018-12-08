@@ -27,7 +27,7 @@ task4 = read_csv("PesticideResidues.csv")
 task5 = read_csv("ca_county_pesticides.csv")
 ```
 
-Task 1
+Task 1: Climate Change Opinions (Yale Program on Climate Change Commu- nication)
 ```{r}
 # correlation matrix 
 sapply(task1, class)
@@ -53,13 +53,13 @@ interaction2 = ggplot(data = task1_s1, aes(x=poverty_rate, y=happening, color=co
   geom_point(shape=1) +
   stat_smooth(aes(group = coastline), method = "lm", formula = y ~ x, se = FALSE)
 interaction2
-interaction2 = ggplot(data = task1_s1, aes(x=GeoName, y=happening, color=coastline), alpha=.1) +
+interaction3 = ggplot(data = task1_s1, aes(x=GeoName, y=happening, color=coastline), alpha=.1) +
   geom_point(shape=1) +
   stat_smooth(aes(group = coastline), method = "lm", formula = y ~ x, se = FALSE)
-interaction2
+interaction3
 ```
 
-Task 2 
+Task 2: UCSB Campus Climate Survey - Perceptions of Campus Respectfulness by Respondent Race/Ethnicity
 ```{r}
 # compare proportions
 task2_simple = task2%>% 
@@ -77,3 +77,33 @@ contrib <- 100*chisq$residuals^2/chisq$statistic
 round(contrib, 3)
 corrplot(contrib, is.cor = FALSE)
 ```
+
+Task 3: Effect of sex and age on self-consciousness (Taylor Manifest Anxiety Scale)
+```{r}
+sapply(task3, class)
+task3 = task3 %>% 
+  mutate(response = case_when(response == "True" ~ 1,
+                              response == "False" ~ 0)) %>% 
+  mutate(sex_mf = case_when(sex_mf == "Male" ~ 1,
+                              sex_mf == "Female" ~ 0))
+
+# cm = rcorr(as.matrix(task3))
+# cm
+
+lm = lm(data = task3, response ~ age + sex_mf) 
+summary(lm) # NOT INCLUDED variables because of likely reverse causuality: "consensus", "discuss", "mediaweekly"
+plot(lm) # does NOT looks homoskedastic plot3
+bptest(lm) # p = 0 thus residuals most likley NOT constant => heteroskedastic 
+
+##### exploring interactions => NO interactions needed ####
+interaction = ggplot(data = task3, aes(x=age, y=response, color=sex_mf), alpha=.1) +
+  geom_point(shape=1) +
+  stat_smooth(aes(group = sex_mf), method = "lm", formula = y ~ x, se = FALSE)
+interaction
+```
+
+Task 4: Pyraclostrobin residues on crops
+```{r}
+
+```
+
