@@ -104,6 +104,43 @@ interaction
 
 Task 4: Pyraclostrobin residues on crops
 ```{r}
+# task4 = task4 %>% 
+#   select(COMMODITY, `CHEMICAL DETECTED (IF ANY)`, `AMOUNT OF CHEMICAL DETECTED (PPM)`) %>% 
+#   rename(commodity = COMMODITY) %>% 
+#   rename(chemical = `CHEMICAL DETECTED (IF ANY)`) %>% 
+#   rename(ppm = `AMOUNT OF CHEMICAL DETECTED (PPM)`)
+task4 = task4 %>% 
+  mutate(detected = case_when(ppm > 0 ~ 1,
+                              ppm == 0 ~ 0))
+task4_simpl = task4 %>% 
+  filter(commodity == "STRAWBERRY (ALL OR UNSPEC)" | commodity == "CARROTS (ROOT CROP)") %>% 
+  mutate(commodity = case_when(commodity == "STRAWBERRY (ALL OR UNSPEC)" ~ "strawberry",
+                   commodity == "CARROTS (ROOT CROP)" ~ "carrot")) %>% 
+  filter(chemical == "PYRACLOSTROBIN")
 
+h = ggplot(task4_simpl, aes(ppm)) +
+  geom_histogram() +
+  facet_wrap("commodity")
+h 
+qqs = ggplot(task4_simpl, aes(sample = ppm)) +
+  geom_qq() + 
+  facet_wrap("commodity", scales = "free") 
+qqs
+
+strawberry = task4_simpl %>% 
+  filter(commodity == "strawberry") %>% 
+  pull(ppm)
+carrot = task4_simpl %>% 
+  filter(commodity == "carrot") %>% 
+  pull(ppm)
+
+ftest = var.test(strawberry,carrot) # p=0 thus variances are NOT equal
+ftest
+
+# #Mann-Whitney U
+# mwu_emp = wilcox.test(strawberry,carrot)
+# mwu_emp # p = 0.3289 (not significant, ranks are equal)
+# 
+# effsize_emp = cohen.d(strawberry,carrot) # d estimate = 0.26 (small)
 ```
 
