@@ -20,6 +20,12 @@ library(stargazer)
 library(Hmisc)
 library(lmtest)
 library(corrplot)
+library(ggplot2)
+library(ggmap)
+library(maps)
+library(mapdata)
+library(stringr)
+library(dplyr)
 task1 = read_csv("climate_opinion.csv")
 task2 = read.csv("ucsb_climate.csv", row.names = 1)
 task3 = read_csv("tmas_df.csv")
@@ -90,10 +96,10 @@ task3 = task3 %>%
 # cm = rcorr(as.matrix(task3))
 # cm
 
-lm = lm(data = task3, response ~ age + sex_mf) 
-summary(lm) # NOT INCLUDED variables because of likely reverse causuality: "consensus", "discuss", "mediaweekly"
-plot(lm) # does NOT looks homoskedastic plot3
-bptest(lm) # p = 0 thus residuals most likley NOT constant => heteroskedastic 
+glm = glm(data = task3, response ~ age + sex_mf) 
+summary(glm) # NOT INCLUDED variables because of likely reverse causuality: "consensus", "discuss", "mediaweekly"
+plot(glm) # cannot tell, doing Breusch-Pagan test 
+bptest(glm) # p = 0 thus residuals most likley NOT constant => heteroskedastic 
 
 ##### exploring interactions => NO interactions needed ####
 interaction = ggplot(data = task3, aes(x=age, y=response, color=sex_mf), alpha=.1) +
@@ -142,5 +148,53 @@ ftest
 # mwu_emp # p = 0.3289 (not significant, ranks are equal)
 # 
 # effsize_emp = cohen.d(strawberry,carrot) # d estimate = 0.26 (small)
+```
+
+Task 5: Pesticides by County, California (2014)
+```{r}
+task5_simpl = task5 %>% 
+  rename(subregion = County) %>% 
+  rename(pound = `Pounds Active Pesticide Ingredient Used`) %>% 
+  rename(rank = `State Ranking`) %>% 
+  rename(area = `County Area (Square Miles)`) %>%
+  mutate(pound_per_sqmile = pound/area) %>% 
+  mutate(subregion = tolower(subregion))
+
+pop_and_area = task5_simpl %>% 
+  select(subregion, pound, area)
+
+
+states <- map_data("state")
+ca_df <- subset(states, region == "california")
+counties <- map_data("county")
+ca_county <- subset(counties, region == "california")
+
+ca_base <- ggplot(data = ca_df, mapping = aes(x = long, y = lat, group = group)) +
+  coord_fixed(1.3) + 
+  geom_polygon(color = "black", fill = "gray") + 
+  theme_nothing() + 
+  geom_polygon(data = ca_county, fill = NA, color = "white") +
+  geom_polygon(color = "black", fill = NA)  # get the state border back on top
+
+cacopa <- inner_join(ca_county, pop_and_area, by = "subregion")
+cacopa$pound_per_mile <- cacopa$pound / cacopa$area
+ditch_the_axes <- theme(
+  axis.text = element_blank(),
+  axis.line = element_blank(),
+  axis.ticks = element_blank(),
+  panel.border = element_blank(),
+  panel.grid = element_blank(),
+  axis.title = element_blank()
+  )
+
+gross <- ca_base + 
+      geom_polygon(data = cacopa, aes(fill = pound_per_mile), color = "white") +
+      geom_polygon(color = "black", fill = NA) +
+      theme_bw() +
+      ditch_the_axes +
+      scale_fill_gradientn(colours = rev(rainbow(7)), 
+                           breaks = c(1, 10, 100, 1000, 10000),
+                           trans = "log10")
+gross 
 ```
 
