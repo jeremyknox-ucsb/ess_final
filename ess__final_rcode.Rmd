@@ -94,29 +94,26 @@ task3 = task3 %>%
   mutate(sex_mf = case_when(sex_mf == "Male" ~ 1,
                               sex_mf == "Female" ~ 0))
 
-# cm = rcorr(as.matrix(task3))
-# cm
-
-glm = glm(data = task3, response ~ age + sex_mf, family = binomial, data = self_cons) 
+glm = glm(response ~ age + sex_mf, family = binomial, data = task3) 
 summary(glm) # NOT INCLUDED variables because of likely reverse causuality: "consensus", "discuss", "mediaweekly"
 plot(glm) # cannot tell, doing Breusch-Pagan test 
 bptest(glm) # p = 0 thus residuals most likley NOT constant => heteroskedastic 
 predict(glm)
 
-age <- rep(seq(from = 0, to = 100), 2) #create sequence of ages 0 to 100 for both male and female
-f <- rep("Female", 101) 
-m <- rep("Male", 101) 
+age <- rep(seq(from = 14, to = 94), 2) #create sequence of ages 0 to 100 for both male and female
+f <- rep("Female", 81) 
+m <- rep("Male", 81) 
 mf <- c(f,m)
 age_mf <- data.frame(age, mf)
 colnames(age_mf) <- c("age", "sex_mf")
 
-probs <- predict(glm, newdata = age_mf, type = "response", se.fit = TRUE)
+probs1 <- predict(glm, newdata = age_mf, type = "response", se.fit = TRUE)
 
 graph1 <- data.frame(age_mf, probs$fit, probs$se.fit)
 colnames(graph1) <- c("Age", "Sex", "Probability", "SE")
 graph1
 
-predicted_probs <- predict(glm, newdata = age_mf, type = "response", se.fit = TRUE)
+probs2 <- predict(glm, newdata = age_mf, type = "response", se.fit = TRUE)
 
 graph2 <- data.frame(age_mf, probs$fit, probs$se.fit)
 colnames(graph2) <- c("Age", "Sex", "Probability", "SE")
@@ -131,15 +128,15 @@ interaction
 
 Task 4: Pyraclostrobin residues on crops
 ```{r}
-# task4 = task4 %>% 
-#   select(COMMODITY, `CHEMICAL DETECTED (IF ANY)`, `AMOUNT OF CHEMICAL DETECTED (PPM)`) %>% 
-#   rename(commodity = COMMODITY) %>% 
-#   rename(chemical = `CHEMICAL DETECTED (IF ANY)`) %>% 
-#   rename(ppm = `AMOUNT OF CHEMICAL DETECTED (PPM)`)
-task4 = task4 %>% 
+task41 = task4 %>%
+  select(COMMODITY, `CHEMICAL DETECTED (IF ANY)`, `AMOUNT OF CHEMICAL DETECTED (PPM)`) %>%
+  rename(commodity = COMMODITY) %>%
+  rename(chemical = `CHEMICAL DETECTED (IF ANY)`) %>%
+  rename(ppm = `AMOUNT OF CHEMICAL DETECTED (PPM)`)
+task42 = task41 %>% 
   mutate(detected = case_when(ppm > 0 ~ 1,
                               ppm == 0 ~ 0))
-task4_simpl = task4 %>% 
+task4_simpl = task42 %>% 
   filter(commodity == "STRAWBERRY (ALL OR UNSPEC)" | commodity == "CARROTS (ROOT CROP)") %>% 
   mutate(commodity = case_when(commodity == "STRAWBERRY (ALL OR UNSPEC)" ~ "strawberry",
                    commodity == "CARROTS (ROOT CROP)" ~ "carrot")) %>% 
@@ -164,11 +161,11 @@ carrot = task4_simpl %>%
 ftest = var.test(strawberry,carrot) # p=0 thus variances are NOT equal
 ftest
 
-# #Mann-Whitney U
-# mwu_emp = wilcox.test(strawberry,carrot)
-# mwu_emp # p = 0.3289 (not significant, ranks are equal)
-# 
-# effsize_emp = cohen.d(strawberry,carrot) # d estimate = 0.26 (small)
+#Mann-Whitney U
+mwu_emp = wilcox.test(strawberry,carrot)
+mwu_emp # p = 0  significant, ranks are NOT equal)
+
+effsize_emp = cliff.delta(strawberry,carrot) # d estimate = 0.26 (small)
 ```
 
 Task 5: Pesticides by County, California (2014)
