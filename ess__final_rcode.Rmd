@@ -62,7 +62,8 @@ interaction2
 interaction3 = ggplot(data = task1_s1, aes(x=GeoName, y=happening, color=coastline), alpha=.1) +
   geom_point(shape=1) +
   stat_smooth(aes(group = coastline), method = "lm", formula = y ~ x, se = FALSE)
-interaction3
+interaction3 
+# NOT INCLUDING states as interacting it with coastline would incease amount of DV by 100%. 
 ```
 
 Task 2: UCSB Campus Climate Survey - Perceptions of Campus Respectfulness by Respondent Race/Ethnicity
@@ -192,9 +193,8 @@ gross <- ca_base +
       geom_polygon(color = "black", fill = NA) +
       theme_bw() +
       ditch_the_axes +
-      scale_fill_gradientn(colours = rev(rainbow(7)), 
+      scale_fill_gradientn(colours = rev(rainbow(2)), 
                            breaks = c(1, 10, 100, 1000, 10000),
                            trans = "log10")
 gross 
 ```
-
