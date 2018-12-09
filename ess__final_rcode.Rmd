@@ -70,7 +70,7 @@ Task 2: UCSB Campus Climate Survey - Perceptions of Campus Respectfulness by Res
 ```{r}
 # compare proportions
 task2_simple = task2%>% 
-  select(Very.Respectful,Respectful,Disrespectful,Very.Disrespectful)
+  select(p_Very.Respectful,p_Respectful,p_Disrespectful,p_Very.Disrespectful)
 chisq <- chisq.test(task2_simple)
 chisq
 
@@ -97,10 +97,30 @@ task3 = task3 %>%
 # cm = rcorr(as.matrix(task3))
 # cm
 
-glm = glm(data = task3, response ~ age + sex_mf) 
+glm = glm(data = task3, response ~ age + sex_mf, family = binomial, data = self_cons) 
 summary(glm) # NOT INCLUDED variables because of likely reverse causuality: "consensus", "discuss", "mediaweekly"
 plot(glm) # cannot tell, doing Breusch-Pagan test 
 bptest(glm) # p = 0 thus residuals most likley NOT constant => heteroskedastic 
+predict(glm)
+
+age <- rep(seq(from = 0, to = 100), 2) #create sequence of ages 0 to 100 for both male and female
+f <- rep("Female", 101) 
+m <- rep("Male", 101) 
+mf <- c(f,m)
+age_mf <- data.frame(age, mf)
+colnames(age_mf) <- c("age", "sex_mf")
+
+probs <- predict(glm, newdata = age_mf, type = "response", se.fit = TRUE)
+
+graph1 <- data.frame(age_mf, probs$fit, probs$se.fit)
+colnames(graph1) <- c("Age", "Sex", "Probability", "SE")
+graph1
+
+predicted_probs <- predict(glm, newdata = age_mf, type = "response", se.fit = TRUE)
+
+graph2 <- data.frame(age_mf, probs$fit, probs$se.fit)
+colnames(graph2) <- c("Age", "Sex", "Probability", "SE")
+graph2
 
 ##### exploring interactions => NO interactions needed ####
 interaction = ggplot(data = task3, aes(x=age, y=response, color=sex_mf), alpha=.1) +
@@ -161,6 +181,13 @@ task5_simpl = task5 %>%
   mutate(pound_per_sqmile = pound/area) %>% 
   mutate(subregion = tolower(subregion))
 
+task5_short = task5_simpl %>% 
+  filter(subregion == "san joaquin"| subregion ==  "fresno"| subregion == "sutter"| subregion == "kings"| subregion == "stanislaus"| subregion == "merced"| subregion == "madera"| subregion == "santa cruz"| subregion == "sacramento"| subregion == "ventura")
+
+short_pop_and_area = task5_short %>% 
+  select(subregion,pound,area)
+  
+  
 pop_and_area = task5_simpl %>% 
   select(subregion, pound, area)
 
@@ -170,6 +197,11 @@ ca_df <- subset(states, region == "california")
 counties <- map_data("county")
 ca_county <- subset(counties, region == "california")
 
+ca_top_county <- subset(counties, region == "california") %>% 
+  filter(subregion == "san joaquin"| subregion ==  "fresno"| subregion == "sutter"| subregion == "kings"| subregion == "stanislaus"| subregion == "merced"| subregion == "madera"| subregion == "santa cruz"| subregion == "sacramento"| subregion == "ventura")
+
+
+#### ALL of California ####
 ca_base <- ggplot(data = ca_df, mapping = aes(x = long, y = lat, group = group)) +
   coord_fixed(1.3) + 
   geom_polygon(color = "black", fill = "gray") + 
@@ -179,6 +211,7 @@ ca_base <- ggplot(data = ca_df, mapping = aes(x = long, y = lat, group = group))
 
 cacopa <- inner_join(ca_county, pop_and_area, by = "subregion")
 cacopa$pound_per_mile <- cacopa$pound / cacopa$area
+
 ditch_the_axes <- theme(
   axis.text = element_blank(),
   axis.line = element_blank(),
@@ -196,5 +229,40 @@ gross <- ca_base +
       scale_fill_gradientn(colours = rev(rainbow(2)), 
                            breaks = c(1, 10, 100, 1000, 10000),
                            trans = "log10")
-gross 
+gross
+
+
+#### TOP counties in California ####
+ca_base <- ggplot(data = ca_df, mapping = aes(x = long, y = lat, group = group)) +
+  coord_fixed(1.3) + 
+  geom_polygon(color = "black", fill = "gray") + 
+  theme_nothing() + 
+  geom_polygon(data = ca_top_county, fill = NA, color = "white") +
+  geom_polygon(color = "black", fill = NA)  # get the state border back on top
+
+cacopa <- inner_join(ca_top_county, short_pop_and_area, by = "subregion")
+cacopa$pound_per_mile <- cacopa$pound / cacopa$area
+
+ditch_the_axes <- theme(
+  axis.text = element_blank(),
+  axis.line = element_blank(),
+  axis.ticks = element_blank(),
+  panel.border = element_blank(),
+  panel.grid = element_blank(),
+  axis.title = element_blank()
+  )
+
+gross_top <- ca_base + 
+      geom_polygon(data = cacopa, aes(fill = pound_per_mile), color = "white") +
+      geom_polygon(color = "black", fill = NA) +
+      theme_bw() +
+      ditch_the_axes +
+      scale_fill_gradientn(colours = rev(rainbow(2)), 
+                           breaks = c(1, 10, 100, 1000, 10000),
+                           trans = "log10") +
+      coord_fixed(xlim = c(-123, -118.0),  ylim = c(34, 39), ratio = 1.3)
+
+gross_top
+
+
 ```
