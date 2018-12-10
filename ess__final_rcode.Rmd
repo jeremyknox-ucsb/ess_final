@@ -34,19 +34,24 @@ task5 = read_csv("ca_county_pesticides.csv")
 ```
 
 Task 1: Climate Change Opinions (Yale Program on Climate Change Commu- nication)
-```{r}
+```{r results=FALSE, results="asis"}
 # correlation matrix 
 sapply(task1, class)
 subset_task1 = task1 %>% select(happening,consensus,discuss,mediaweekly,bachelors,poverty_rate)
+
+#---- 2 ----#
 cm = rcorr(as.matrix(subset_task1))
 cm
 
-# dependent "happening" is derived from a binomial variable with "yes", "no" or "dont know" responses. Then aggreagated at the state level and given as a percent of respondents who repsponded yes.
+# dependent "happening" is derived from a binomial variable with "yes", "no" or "dont know" responses. Then aggreagated at the state level and given as a percent of respondents who repsponded yes (is an estimate?).
 lm = lm(data = task1, happening ~ bachelors + poverty_rate + coastline) 
 summary(lm) # NOT INCLUDED variables because of likely reverse causuality: "consensus", "discuss", "mediaweekly"
 plot(lm) # looks homoskedastic 
 bptest(lm) # p = .65 thus residuals most likley constant => homoskedastic 
 
+#---- 3 ----#
+lm_table <- stargazer(lm, type = "html", title = "Global Warming is Happening (Yes/No) Linear Model", digits = 2, align = TRUE, dep.var.labels = "Global Warming is Happening", covariate.labels = c("Bachelors", "Poverty Rate", "Coastline","Constant"), out="model.htm")
+lm_table
 
 ##### exploring interactions => NO interactions needed ####
 task1_s1 = task1 %>% 
@@ -65,28 +70,50 @@ interaction3 = ggplot(data = task1_s1, aes(x=GeoName, y=happening, color=coastli
 interaction3 
 # NOT INCLUDING states as interacting it with coastline would incease amount of DV by 100%. 
 ```
+#Task 1 Answers:
+(a) A brief statement (1-sentence) explaining the type of analysis you chose to perform, and why it is appropriate.
+A multivariable linear regression was employed to explore relationships between education attainment, poverty levels and coastline on the estimated proportion of people who believe that global warming is happening. Multivariable linear regression was used beacuse there are multiple dependent variables with a single continuous independent variable. 
+
+(b) An exploratory correlation matrix for all continuous variables (make it readable, but it does not need to be finalized and you do not need to add a figure caption).
+*code*
+
+(c) A finalized table of results for your analyses (you may present more than one model), with a figure caption. 
+Table 1. Multiple linear regression of estimated percentate of people who think global warming is happening on education attainment, poverty levels and coastline. Coefficient for *coastline* is in reference to states with no coastline. Also included in the table are indicators of model fit. Data was aggreagated at the state level, resulting in proportions of people per state. Sources: (1) Climate opinion data: Yale Climate Opinion Maps (2018): By Jennifer Marlon, Peter Howe, Matto Mildenberger, Anthony Leiserowitz and Xinran Wang. (2) *Education attainment and poverty levels: Bureau, U.S. Census. “2011-2015 American Community Survey 5-Year Estimates”. factfinder.census.gov. Retrieved 2017-07-02.
+
+(d) Choose two coefficients in the model that you find interesting (either because they are expected or unexpected). For each, write a single sentence explaining what that coefficient means in terms of an expected change in the dependent variable.
+On average, the proportions of people per state who live in coastal states are 3.35 percent more likely to have answered yes to the question "Global warming is happening?" as compared to people who live in states with no coastline - holding all other variables constant. 
+On average, a 1 percent increase in proportion of bachelors per state will result in a 
+
+
+
 
 Task 2: UCSB Campus Climate Survey - Perceptions of Campus Respectfulness by Respondent Race/Ethnicity
-```{r}
+```{r results=FALSE}
 # compare proportions
 task2_simple = task2%>% 
-  select(p_Very.Respectful,p_Respectful,p_Disrespectful,p_Very.Disrespectful)
+  select(Very.Respectful,
+         Respectful,
+         Disrespectful,
+         Very.Disrespectful)
 chisq <- chisq.test(task2_simple)
-chisq
 
-# exploring visually
-chisq$observed
-round(chisq$expected,2)
-round(chisq$residuals, 3)
-corrplot(chisq$residuals, is.cor = FALSE)
+chisq # p < 0.001 => reject null => There is a siginificant association between ethnicity and perception of campus respectfulness (x^2(18) = 1489.6, p < 0.001). 
 
-contrib <- 100*chisq$residuals^2/chisq$statistic
-round(contrib, 3)
-corrplot(contrib, is.cor = FALSE)
+# Kruskal-Wallace?
+
+# # exploring visually
+# chisq$observed
+# round(chisq$expected,2)
+# round(chisq$residuals, 3)
+# corrplot(chisq$residuals, is.cor = FALSE)
+# 
+# contrib <- 100*chisq$residuals^2/chisq$statistic
+# round(contrib, 3)
+# corrplot(contrib, is.cor = FALSE)
 ```
 
 Task 3: Effect of sex and age on self-consciousness (Taylor Manifest Anxiety Scale)
-```{r}
+```{r results=FALSE}
 sapply(task3, class)
 task3 = task3 %>% 
   mutate(response = case_when(response == "True" ~ 1,
@@ -94,30 +121,30 @@ task3 = task3 %>%
   mutate(sex_mf = case_when(sex_mf == "Male" ~ 1,
                               sex_mf == "Female" ~ 0))
 
-glm = glm(response ~ age + sex_mf, family = binomial, data = task3) 
-summary(glm) # NOT INCLUDED variables because of likely reverse causuality: "consensus", "discuss", "mediaweekly"
-plot(glm) # cannot tell, doing Breusch-Pagan test 
-bptest(glm) # p = 0 thus residuals most likley NOT constant => heteroskedastic 
-predict(glm)
-
-age <- rep(seq(from = 14, to = 94), 2) #create sequence of ages 0 to 100 for both male and female
-f <- rep("Female", 81) 
-m <- rep("Male", 81) 
-mf <- c(f,m)
-age_mf <- data.frame(age, mf)
-colnames(age_mf) <- c("age", "sex_mf")
-
-probs1 <- predict(glm, newdata = age_mf, type = "response", se.fit = TRUE)
-
-graph1 <- data.frame(age_mf, probs$fit, probs$se.fit)
-colnames(graph1) <- c("Age", "Sex", "Probability", "SE")
-graph1
-
-probs2 <- predict(glm, newdata = age_mf, type = "response", se.fit = TRUE)
-
-graph2 <- data.frame(age_mf, probs$fit, probs$se.fit)
-colnames(graph2) <- c("Age", "Sex", "Probability", "SE")
-graph2
+# glm = glm(response ~ age + sex_mf, family = binomial, data = task3) 
+# summary(glm) # NOT INCLUDED variables because of likely reverse causuality: "consensus", "discuss", "mediaweekly"
+# plot(glm) # cannot tell, doing Breusch-Pagan test 
+# bptest(glm) # p = 0 thus residuals most likley NOT constant => heteroskedastic 
+# predict(glm)
+# 
+# age <- rep(seq(from = 14, to = 94), 2) #create sequence of ages 0 to 100 for both male and female
+# f <- rep("Female", 81) 
+# m <- rep("Male", 81) 
+# mf <- c(f,m)
+# age_mf <- data.frame(age, mf)
+# colnames(age_mf) <- c("age", "sex_mf")
+# 
+# probs1 <- predict(glm, newdata = age_mf, type = "response", se.fit = TRUE)
+# 
+# graph1 <- data.frame(age_mf, probs$fit, probs$se.fit)
+# colnames(graph1) <- c("Age", "Sex", "Probability", "SE")
+# graph1
+# 
+# probs2 <- predict(glm, newdata = age_mf, type = "response", se.fit = TRUE)
+# 
+# graph2 <- data.frame(age_mf, probs$fit, probs$se.fit)
+# colnames(graph2) <- c("Age", "Sex", "Probability", "SE")
+# graph2
 
 ##### exploring interactions => NO interactions needed ####
 interaction = ggplot(data = task3, aes(x=age, y=response, color=sex_mf), alpha=.1) +
@@ -127,7 +154,7 @@ interaction
 ```
 
 Task 4: Pyraclostrobin residues on crops
-```{r}
+```{r results=FALSE}
 task41 = task4 %>%
   select(COMMODITY, `CHEMICAL DETECTED (IF ANY)`, `AMOUNT OF CHEMICAL DETECTED (PPM)`) %>%
   rename(commodity = COMMODITY) %>%
@@ -169,7 +196,7 @@ effsize_emp = cliff.delta(strawberry,carrot) # d estimate = 0.26 (small)
 ```
 
 Task 5: Pesticides by County, California (2014)
-```{r}
+```{r results=FALSE}
 task5_simpl = task5 %>% 
   rename(subregion = County) %>% 
   rename(pound = `Pounds Active Pesticide Ingredient Used`) %>% 
