@@ -26,6 +26,7 @@ library(maps)
 library(mapdata)
 library(stringr)
 library(dplyr)
+library(corrplot)
 task1 = read_csv("climate_opinion.csv")
 task2 = read.csv("ucsb_climate.csv", row.names = 1)
 task3 = read_csv("tmas_df.csv")
@@ -37,13 +38,16 @@ task5 = read_csv("ca_county_pesticides.csv")
 
 Task 1: Climate Change Opinions (Yale Program on Climate Change Commu- nication)
 ```{r results=FALSE, results="asis"}
+#---- 2 ----#
 # correlation matrix 
 sapply(task1, class)
 subset_task1 = task1 %>% select(happening,consensus,discuss,mediaweekly,bachelors,poverty_rate)
 
-#---- 2 ----#
-cm = rcorr(as.matrix(subset_task1))
+cm = cor(subset_task1)
 cm
+
+corrplot(cm, type = "upper", order = "hclust", 
+         tl.col = "black", tl.srt = 45)
 
 # dependent "happening" is derived from a binomial variable with "yes", "no" or "dont know" responses. Then aggreagated at the state level and given as a percent of respondents who repsponded yes (is an estimate?).
 lm = lm(data = task1, happening ~ bachelors + poverty_rate + coastline) 
@@ -150,10 +154,11 @@ g_data
 colnames(g_data) = c("Age", "Sex", "Probability", "SE")
 
 graph = ggplot(g_data, aes(x = Age, y = Probability))+
-  geom_line(aes(color = Sex), alpha = .1)+
-  geom_ribbon(aes(ymin = Probability - SE, ymax = Probability + SE, fill = Sex))+
+  geom_line(aes(color = Sex)) +
+  geom_ribbon(aes(ymin = Probability - SE, ymax = Probability + SE, fill = Sex), alpha = .3 )+
   theme_classic()+
-  scale_y_continuous(limits = c(0,1))
+  scale_y_continuous(limits = c(0,1)) +
+  labs(title = "BLAH")
 graph
 
 
@@ -165,6 +170,7 @@ interaction = ggplot(data = task3, aes(x=age, y=response, color=sex_mf), alpha=.
 interaction
 ```
 #Task 3 Answers:
+
 
 #
 
@@ -214,7 +220,6 @@ effsize_emp
 
 (b) Ranking (pyraclostrobin in ppm) differed between the groups, with a higher median of 0.07 for stawberry (n = 40), versus a sample median of 0.02 for carrot (n = 15). A Mann-Whitney U test revealed there is a significant difference in the amount of pyraclostrobin detected between strawberries and carrots (W = 508.5, p < 0.001). Additionally, the effect size is large (Cliff's Delta = 0.7). 
 #
-
 
 
 Task 5: Pesticides by County, California (2014)
@@ -273,41 +278,60 @@ gross <- ca_base +
       theme_bw() +
       ditch_the_axes +
       scale_fill_gradientn(colours = rev(rainbow(2)), 
-                           breaks = c(1, 10, 100, 1000, 10000),
-                           trans = "log10")
+                           breaks = c(1, 10, 100, 1000, 3300, 8600),
+                           trans = "log10") +
+      labs(fill = "Pounds of Pesticide per Square Mile")
 gross
 
 
 #### TOP counties in California ####
-ca_base <- ggplot(data = ca_df, mapping = aes(x = long, y = lat, group = group)) +
+ca_top <- ggplot(data = ca_df, mapping = aes(x = long, y = lat, group = group)) +
   coord_fixed(1.3) + 
   geom_polygon(color = "black", fill = "gray") + 
   theme_nothing() + 
   geom_polygon(data = ca_top_county, fill = NA, color = "white") +
+  # geom_point(data = labs, aes(x = long, y = lat), color = "black", size = 5) +
+  # geom_point(data = labs, aes(x = long, y = lat), color = "yellow", size = 4) +
+  # geom_text(data = labs, aes(label = paste("  ", as.character(names), sep="")), angle = 60, hjust = 0, color = "yellow") +
   geom_polygon(color = "black", fill = NA)  # get the state border back on top
 
 cacopa <- inner_join(ca_top_county, short_pop_and_area, by = "subregion")
 cacopa$pound_per_mile <- cacopa$pound / cacopa$area
 
-ditch_the_axes <- theme(
-  axis.text = element_blank(),
-  axis.line = element_blank(),
-  axis.ticks = element_blank(),
-  panel.border = element_blank(),
-  panel.grid = element_blank(),
-  axis.title = element_blank()
-  )
+labs <- data.frame(
+  long = c(-120.1890, -119.2321, -121.7527, -118.5551, -120.9876, -120.4830, -120.0607, -122.0308, -121.4944, -119.2945),
+  lat = c(36.6066, 36.9859, 39.1599, 36.8879, 37.5091, 37.3022, 36.9613, 36.9741, 38.5816, 34.2805),
+  names = c("San Joaquin", "Fresno", "Sutter", "Kings", "Stanislaus", "Merced", "Madera", "Santa Cruz", "Sacramento", "Ventura"),
+  stringsAsFactors = FALSE
+  )  
 
-gross_top <- ca_base + 
+label = distinct(cacopa, subregion, .keep_all = TRUE)
+  
+  
+
+# "san joaquin" 36.6066° N, 120.1890° W
+# "fresno" 36.9859° N, 119.2321° W
+# "sutter" 39.1599° N, 121.7527° W
+# "kings" 36.8879° N, 118.5551° W
+# "stanislaus" 37.5091° N, 120.9876° W
+# "merced" 37.3022° N, 120.4830° W
+# "madera" 36.9613° N, 120.0607° W
+# "santa cruz" 36.9741° N, 122.0308° W
+# "sacramento" 38.5816° N, 121.4944° W
+# "ventura" 34.2805° N, 119.2945° W
+
+gross_top <- ca_top + 
       geom_polygon(data = cacopa, aes(fill = pound_per_mile), color = "white") +
       geom_polygon(color = "black", fill = NA) +
       theme_bw() +
       ditch_the_axes +
       scale_fill_gradientn(colours = rev(rainbow(2)), 
-                           breaks = c(1, 10, 100, 1000, 10000),
-                           trans = "log10") +
-      coord_fixed(xlim = c(-123, -118.0), ylim = c(34, 39), ratio = 1.3) 
-      
+                           breaks = c(4000, 5000, 6000, 7000, 8000))+
+                           #trans = "log2") +
+      coord_fixed(xlim = c(-123, -118.0), ylim = c(34, 39.1), ratio = 1.3) +
+      labs(fill = "Pounds of Pesticide per Square Mile") +
+      geom_text(data = label, aes(label = names, x = long, y = lat), size = 2)
+        
 gross_top
 
 
