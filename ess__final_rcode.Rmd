@@ -33,6 +33,8 @@ task4 = read_csv("PesticideResidues.csv")
 task5 = read_csv("ca_county_pesticides.csv")
 ```
 
+
+
 Task 1: Climate Change Opinions (Yale Program on Climate Change Commu- nication)
 ```{r results=FALSE, results="asis"}
 # correlation matrix 
@@ -71,21 +73,19 @@ interaction3
 # NOT INCLUDING states as interacting it with coastline would incease amount of DV by 100%. 
 ```
 #Task 1 Answers:
-(a) A brief statement (1-sentence) explaining the type of analysis you chose to perform, and why it is appropriate.
-A multivariable linear regression was employed to explore relationships between education attainment, poverty levels and coastline on the estimated proportion of people who believe that global warming is happening. Multivariable linear regression was used beacuse there are multiple dependent variables with a single continuous independent variable. 
+(a) A multivariable linear regression was employed to explore relationships between education attainment, poverty levels and coastline on the estimated proportion of people who believe that global warming is happening. Multivariable linear regression was used beacuse there are multiple dependent variables with a single continuous independent variable. 
 
 (b) An exploratory correlation matrix for all continuous variables (make it readable, but it does not need to be finalized and you do not need to add a figure caption).
 *code*
 
-(c) A finalized table of results for your analyses (you may present more than one model), with a figure caption. 
-Table 1. Multiple linear regression of estimated percentate of people who think global warming is happening on education attainment, poverty levels and coastline. Coefficient for *coastline* is in reference to states with no coastline. Also included in the table are indicators of model fit. Data was aggreagated at the state level, resulting in proportions of people per state. Sources: (1) Climate opinion data: Yale Climate Opinion Maps (2018): By Jennifer Marlon, Peter Howe, Matto Mildenberger, Anthony Leiserowitz and Xinran Wang. (2) *Education attainment and poverty levels: Bureau, U.S. Census. “2011-2015 American Community Survey 5-Year Estimates”. factfinder.census.gov. Retrieved 2017-07-02.
+(c) Table 1. Multiple linear regression of estimated percentate of people who think global warming is happening on education attainment, poverty levels and coastline. Coefficient for *coastline* is in reference to states with no coastline. Also included in the table are indicators of model fit. Data was aggreagated at the state level, resulting in proportions of people per state. Sources: (1) Climate opinion data: Yale Climate Opinion Maps (2018): By Jennifer Marlon, Peter Howe, Matto Mildenberger, Anthony Leiserowitz and Xinran Wang. (2) *Education attainment and poverty levels: Bureau, U.S. Census. “2011-2015 American Community Survey 5-Year Estimates”. factfinder.census.gov. Retrieved 2017-07-02.
 
-(d) Choose two coefficients in the model that you find interesting (either because they are expected or unexpected). For each, write a single sentence explaining what that coefficient means in terms of an expected change in the dependent variable.
-On average, the proportions of people per state who live in coastal states are 3.35 percent more likely to have answered yes to the question, "Global warming is happening?", as compared to people who live in states with no coastline - holding all other variables in the model constant. 
+(d) On average, the proportions of people per state who live in coastal states are 3.35 percent more likely to have answered yes to the question, "Global warming is happening?", as compared to people who live in states with no coastline - holding all other variables in the model constant. 
 On average, a 1 percent increase in proportion of bachelors per state will result in a 0.63 percent increase in proportion of people per state who responded yesr to the question, "Global warming is happening?" - holding all other variables in the model constant. 
 
 (e) According to diagnostics plots and Breusch-Pagan test, the above model looks to be homoskedastic. Also, the residuals look to be normally distributed. 
 #
+
 
 Task 2: UCSB Campus Climate Survey - Perceptions of Campus Respectfulness by Respondent Race/Ethnicity
 ```{r results=FALSE}
@@ -111,7 +111,7 @@ chisq # p < 0.001 => reject null => There is a siginificant association between 
 # corrplot(contrib, is.cor = FALSE)
 ```
 #Task 2 Answers: 
-(a) A chi squared analysis will be used to test the question: Is there a significant association between ethinicity and perception of campus respectfullness?
+(a) A chi squared test will be used to test the question: Is there a significant association between ethinicity and perception of campus respectfullness?
 
 (b) There is a siginificant association between ethnicity and perception of campus respectfulness (x^2(18) = 1489.6, p < 0.001).
 
@@ -121,46 +121,53 @@ chisq # p < 0.001 => reject null => There is a siginificant association between 
 
 #
 
-Task 3: Effect of sex and age on self-consciousness (Taylor Manifest Anxiety Scale)
-```{r results=FALSE}
-sapply(task3, class)
-task3 = task3 %>% 
-  mutate(response = case_when(response == "True" ~ 1,
-                              response == "False" ~ 0)) %>% 
-  mutate(sex_mf = case_when(sex_mf == "Male" ~ 1,
-                              sex_mf == "Female" ~ 0))
 
-# glm = glm(response ~ age + sex_mf, family = binomial, data = task3) 
-# summary(glm) # NOT INCLUDED variables because of likely reverse causuality: "consensus", "discuss", "mediaweekly"
-# plot(glm) # cannot tell, doing Breusch-Pagan test 
-# bptest(glm) # p = 0 thus residuals most likley NOT constant => heteroskedastic 
-# predict(glm)
-# 
-# age <- rep(seq(from = 14, to = 94), 2) #create sequence of ages 0 to 100 for both male and female
-# f <- rep("Female", 81) 
-# m <- rep("Male", 81) 
-# mf <- c(f,m)
-# age_mf <- data.frame(age, mf)
-# colnames(age_mf) <- c("age", "sex_mf")
-# 
-# probs1 <- predict(glm, newdata = age_mf, type = "response", se.fit = TRUE)
-# 
-# graph1 <- data.frame(age_mf, probs$fit, probs$se.fit)
-# colnames(graph1) <- c("Age", "Sex", "Probability", "SE")
-# graph1
-# 
-# probs2 <- predict(glm, newdata = age_mf, type = "response", se.fit = TRUE)
-# 
-# graph2 <- data.frame(age_mf, probs$fit, probs$se.fit)
-# colnames(graph2) <- c("Age", "Sex", "Probability", "SE")
-# graph2
+Task 3: Effect of sex and age on self-consciousness (Taylor Manifest Anxiety Scale)
+```{r results=FALSE, results="asis"}
+sapply(task3, class)
+
+task3$response = as.logical(task3$response)
+
+glm = glm(response ~ age + sex_mf, family = binomial, data = task3)
+summary(glm)
+plot(glm) # cannot tell, doing Breusch-Pagan test
+
+glm_table = stargazer(lm, type = "html", title = "I am Usually Self-Conscious Logistic Model", digits = 2, align = TRUE, dep.var.labels = "I am Usually Self-Conscious (Yes)", covariate.labels = c("Age", "Sex", "Family","Constant"), out="model.htm")
+glm_table
+
+age = rep(seq(from = 0, to = 100), 2)
+f = rep("Female", 101)
+m = rep("Male", 101)
+mf = c(f,m)
+age_mf = data.frame(age, mf)
+colnames(age_mf) = c("age", "sex_mf")
+
+probs = predict(glm, newdata=age_mf, type = "response", se.fit=T)
+
+g_data = data.frame(age_mf, probs$fit, probs$se.fit)
+g_data
+
+colnames(g_data) = c("Age", "Sex", "Probability", "SE")
+
+graph = ggplot(g_data, aes(x = Age, y = Probability))+
+  geom_line(aes(color = Sex), alpha = .1)+
+  geom_ribbon(aes(ymin = Probability - SE, ymax = Probability + SE, fill = Sex))+
+  theme_classic()+
+  scale_y_continuous(limits = c(0,1))
+graph
+
+
 
 ##### exploring interactions => NO interactions needed ####
-interaction = ggplot(data = task3, aes(x=age, y=response, color=sex_mf), alpha=.1) +
+interaction = ggplot(data = task3, aes(x=age, y=response, color=sex_mf), alpha=.01) +
   geom_point(shape=1) +
   stat_smooth(aes(group = sex_mf), method = "lm", formula = y ~ x, se = FALSE)
 interaction
 ```
+#Task 3 Answers:
+
+#
+
 
 Task 4: Pyraclostrobin residues on crops
 ```{r results=FALSE}
@@ -203,11 +210,12 @@ effsize_emp = cliff.delta(strawberry,carrot) # d estimate = 0.26 (small)
 effsize_emp
 ```
 #Task 4 Answers: 
-(a) Based on histograms and quantile-quantile plots of strwaberries and carrots that had pyraclostrobin detected showed a non-normal distribution. Additionally, the number of observatiosn for carrots (n = 15) restricts us from using the central limit theorem to run parametric tests. 
+(a) Based on histograms and quantile-quantile plots (see graphs) of strwaberries and carrots that had pyraclostrobin detected showed a non-normal distribution. Additionally, the number of observatiosn for carrots (n = 15) restricts us from using the central limit theorem to run parametric tests. 
 
 (b) Ranking (pyraclostrobin in ppm) differed between the groups, with a higher median of 0.07 for stawberry (n = 40), versus a sample median of 0.02 for carrot (n = 15). A Mann-Whitney U test revealed there is a significant difference in the amount of pyraclostrobin detected between strawberries and carrots (W = 508.5, p < 0.001). Additionally, the effect size is large (Cliff's Delta = 0.7). 
-
 #
+
+
 
 Task 5: Pesticides by County, California (2014)
 ```{r results=FALSE}
@@ -298,8 +306,15 @@ gross_top <- ca_base +
       scale_fill_gradientn(colours = rev(rainbow(2)), 
                            breaks = c(1, 10, 100, 1000, 10000),
                            trans = "log10") +
-      coord_fixed(xlim = c(-123, -118.0), ylim = c(34, 39), ratio = 1.3)
+      coord_fixed(xlim = c(-123, -118.0), ylim = c(34, 39), ratio = 1.3) 
+      
 gross_top
 
 
 ```
+#Task 5 Answers: 
+See graph.
+#
+
+
+
