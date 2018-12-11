@@ -275,12 +275,13 @@ ditch_the_axes <- theme(
 gross <- ca_base + 
       geom_polygon(data = cacopa, aes(fill = pound_per_mile), color = "white") +
       geom_polygon(color = "black", fill = NA) +
+      theme(plot.title = element_text(hjust = 0.5)) +
       theme_bw() +
       ditch_the_axes +
       scale_fill_gradientn(colours = rev(rainbow(2)), 
                            breaks = c(1, 10, 100, 1000, 3300, 8600),
                            trans = "log10") +
-      labs(fill = "Pounds of Pesticide per Square Mile")
+      labs(fill = "Pounds of Pesticide per Square Mile", title = "California - Pounds of Pesticide per County")
 gross
 
 
@@ -298,6 +299,7 @@ ca_top <- ggplot(data = ca_df, mapping = aes(x = long, y = lat, group = group)) 
 cacopa <- inner_join(ca_top_county, short_pop_and_area, by = "subregion")
 cacopa$pound_per_mile <- cacopa$pound / cacopa$area
 
+##### 
 labs <- data.frame(
   long = c(-120.1890, -119.2321, -121.7527, -118.5551, -120.9876, -120.4830, -120.0607, -122.0308, -121.4944, -119.2945),
   lat = c(36.6066, 36.9859, 39.1599, 36.8879, 37.5091, 37.3022, 36.9613, 36.9741, 38.5816, 34.2805),
@@ -306,8 +308,12 @@ labs <- data.frame(
   )  
 
 label = distinct(cacopa, subregion, .keep_all = TRUE)
-  
-  
+
+test = cacopa %>%
+  select(long,lat,subregion) %>%
+  filter(subregion == "sacramento") %>%
+  filter(long == max(long)) %>%
+  filter(lat == max(lat))
 
 # "san joaquin" 36.6066° N, 120.1890° W
 # "fresno" 36.9859° N, 119.2321° W
@@ -319,10 +325,12 @@ label = distinct(cacopa, subregion, .keep_all = TRUE)
 # "santa cruz" 36.9741° N, 122.0308° W
 # "sacramento" 38.5816° N, 121.4944° W
 # "ventura" 34.2805° N, 119.2945° W
+##### 
 
 gross_top <- ca_top + 
       geom_polygon(data = cacopa, aes(fill = pound_per_mile), color = "white") +
       geom_polygon(color = "black", fill = NA) +
+      theme(plot.title = element_text(hjust = 0.5)) +
       theme_bw() +
       ditch_the_axes +
       scale_fill_gradientn(colours = rev(rainbow(2)), 
@@ -330,7 +338,9 @@ gross_top <- ca_top +
                            #trans = "log2") +
       coord_fixed(xlim = c(-123, -118.0), ylim = c(34, 39.1), ratio = 1.3) +
       labs(fill = "Pounds of Pesticide per Square Mile") +
-      geom_text(data = label, aes(label = names, x = long, y = lat), size = 2)
+     # geom_text(data = cacopa, aes(label = subregion, x = long, y = lat), size = 2)
+      geom_text(data=cacopa1, aes(label = subregion), size=3) +
+      labs(title ="California Top 10 Counties for Pounds of Pesticide per County") 
         
 gross_top
 
