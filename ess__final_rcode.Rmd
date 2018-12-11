@@ -81,11 +81,11 @@ A multivariable linear regression was employed to explore relationships between 
 Table 1. Multiple linear regression of estimated percentate of people who think global warming is happening on education attainment, poverty levels and coastline. Coefficient for *coastline* is in reference to states with no coastline. Also included in the table are indicators of model fit. Data was aggreagated at the state level, resulting in proportions of people per state. Sources: (1) Climate opinion data: Yale Climate Opinion Maps (2018): By Jennifer Marlon, Peter Howe, Matto Mildenberger, Anthony Leiserowitz and Xinran Wang. (2) *Education attainment and poverty levels: Bureau, U.S. Census. “2011-2015 American Community Survey 5-Year Estimates”. factfinder.census.gov. Retrieved 2017-07-02.
 
 (d) Choose two coefficients in the model that you find interesting (either because they are expected or unexpected). For each, write a single sentence explaining what that coefficient means in terms of an expected change in the dependent variable.
-On average, the proportions of people per state who live in coastal states are 3.35 percent more likely to have answered yes to the question "Global warming is happening?" as compared to people who live in states with no coastline - holding all other variables constant. 
-On average, a 1 percent increase in proportion of bachelors per state will result in a 
+On average, the proportions of people per state who live in coastal states are 3.35 percent more likely to have answered yes to the question, "Global warming is happening?", as compared to people who live in states with no coastline - holding all other variables in the model constant. 
+On average, a 1 percent increase in proportion of bachelors per state will result in a 0.63 percent increase in proportion of people per state who responded yesr to the question, "Global warming is happening?" - holding all other variables in the model constant. 
 
-
-
+(e) According to diagnostics plots and Breusch-Pagan test, the above model looks to be homoskedastic. Also, the residuals look to be normally distributed. 
+#
 
 Task 2: UCSB Campus Climate Survey - Perceptions of Campus Respectfulness by Respondent Race/Ethnicity
 ```{r results=FALSE}
@@ -100,7 +100,6 @@ chisq <- chisq.test(task2_simple)
 chisq # p < 0.001 => reject null => There is a siginificant association between ethnicity and perception of campus respectfulness (x^2(18) = 1489.6, p < 0.001). 
 
 # Kruskal-Wallace?
-
 # # exploring visually
 # chisq$observed
 # round(chisq$expected,2)
@@ -111,6 +110,16 @@ chisq # p < 0.001 => reject null => There is a siginificant association between 
 # round(contrib, 3)
 # corrplot(contrib, is.cor = FALSE)
 ```
+#Task 2 Answers: 
+(a) A chi squared analysis will be used to test the question: Is there a significant association between ethinicity and perception of campus respectfullness?
+
+(b) There is a siginificant association between ethnicity and perception of campus respectfulness (x^2(18) = 1489.6, p < 0.001).
+
+(c) *copied data frame to word (source local file)* NEED FIGURE CAPTION
+
+(d) Twenty-four percent (highest) of respondents who indicated overall campus climate was "very respectufl" were from White racial/ethnic backgrounds (Table XXX). As compared to twelve percent (lowest) of people from Middle Eastern/South Asian/North African racial/ethnic backgrounds. Of respondents who answered campus climate was "very disrespectful", seven percent were white (lowest) while twenty-two percent (highest) were from black racial/ethnic backgrounds.
+
+#
 
 Task 3: Effect of sex and age on self-consciousness (Taylor Manifest Anxiety Scale)
 ```{r results=FALSE}
@@ -185,15 +194,20 @@ carrot = task4_simpl %>%
   filter(commodity == "carrot") %>% 
   pull(ppm)
 
-ftest = var.test(strawberry,carrot) # p=0 thus variances are NOT equal
-ftest
 
 #Mann-Whitney U
 mwu_emp = wilcox.test(strawberry,carrot)
 mwu_emp # p = 0  significant, ranks are NOT equal)
 
 effsize_emp = cliff.delta(strawberry,carrot) # d estimate = 0.26 (small)
+effsize_emp
 ```
+#Task 4 Answers: 
+(a) Based on histograms and quantile-quantile plots of strwaberries and carrots that had pyraclostrobin detected showed a non-normal distribution. Additionally, the number of observatiosn for carrots (n = 15) restricts us from using the central limit theorem to run parametric tests. 
+
+(b) Ranking (pyraclostrobin in ppm) differed between the groups, with a higher median of 0.07 for stawberry (n = 40), versus a sample median of 0.02 for carrot (n = 15). A Mann-Whitney U test revealed there is a significant difference in the amount of pyraclostrobin detected between strawberries and carrots (W = 508.5, p < 0.001). Additionally, the effect size is large (Cliff's Delta = 0.7). 
+
+#
 
 Task 5: Pesticides by County, California (2014)
 ```{r results=FALSE}
@@ -284,8 +298,7 @@ gross_top <- ca_base +
       scale_fill_gradientn(colours = rev(rainbow(2)), 
                            breaks = c(1, 10, 100, 1000, 10000),
                            trans = "log10") +
-      coord_fixed(xlim = c(-123, -118.0),  ylim = c(34, 39), ratio = 1.3)
-
+      coord_fixed(xlim = c(-123, -118.0), ylim = c(34, 39), ratio = 1.3)
 gross_top
 
 
