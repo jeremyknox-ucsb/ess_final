@@ -136,7 +136,7 @@ glm = glm(response ~ age + sex_mf, family = binomial, data = task3)
 summary(glm)
 plot(glm) # cannot tell, doing Breusch-Pagan test
 
-glm_table = stargazer(lm, type = "html", title = "I am Usually Self-Conscious Logistic Model", digits = 2, align = TRUE, dep.var.labels = "I am Usually Self-Conscious (Yes)", covariate.labels = c("Age", "Sex", "Family","Constant"), out="model.htm")
+glm_table = stargazer(glm, type = "html", title = "I am Usually Self-Conscious (Yes/No) Logistic Model", digits = 2, align = TRUE, dep.var.labels = "I am Usually Self-Conscious", covariate.labels = c("Age", "Sex","Constant"), out="model.htm")
 glm_table
 
 age = rep(seq(from = 0, to = 100), 2)
@@ -157,8 +157,9 @@ graph = ggplot(g_data, aes(x = Age, y = Probability))+
   geom_line(aes(color = Sex)) +
   geom_ribbon(aes(ymin = Probability - SE, ymax = Probability + SE, fill = Sex), alpha = .3 )+
   theme_classic()+
+  theme(plot.title = element_text(hjust = 0.5)) +
   scale_y_continuous(limits = c(0,1)) +
-  labs(title = "BLAH")
+  labs(title = "Probaility of responding \"I am usually self-conscious\"")
 graph
 
 
@@ -214,6 +215,9 @@ mwu_emp # p = 0  significant, ranks are NOT equal)
 
 effsize_emp = cliff.delta(strawberry,carrot) # d estimate = 0.26 (small)
 effsize_emp
+
+
+knitr::knit_exit()
 ```
 #Task 4 Answers: 
 (a) Based on histograms and quantile-quantile plots (see graphs) of strwaberries and carrots that had pyraclostrobin detected showed a non-normal distribution. Additionally, the number of observatiosn for carrots (n = 15) restricts us from using the central limit theorem to run parametric tests. 
@@ -223,7 +227,7 @@ effsize_emp
 
 
 Task 5: Pesticides by County, California (2014)
-```{r results=FALSE}
+```{r results=FALSE, echo=FALSE}
 task5_simpl = task5 %>% 
   rename(subregion = County) %>% 
   rename(pound = `Pounds Active Pesticide Ingredient Used`) %>% 
